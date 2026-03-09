@@ -1,0 +1,13 @@
+{
+  "name": "red-light-green-light",
+  "version": "1.0.0",
+  "description": "Kids browser game — Red Light, Green Light with ML movement detection via TensorFlow.js MoveNet",
+  "private": true,
+  "scripts": {
+    "dev": "npx serve public -p 3000",
+    "preview": "npx serve public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
