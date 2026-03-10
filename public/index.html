@@ -8,21 +8,74 @@
 </head>
 <body>
 
-  <!-- ===== SPLASH / START SCREEN ===== -->
+  <!-- ===== START SCREEN ===== -->
   <div id="screen-start" class="screen active">
-    <div class="splash-doll">🪆</div>
-    <h1 class="game-title">Red Light,<br>Green Light!</h1>
-    <p class="subtitle">Freeze when you see 🔴 Red!<br>Move when you see 🟢 Green!</p>
-    <div class="camera-notice">📷 You'll need your camera</div>
-    <div class="difficulty-select">
-      <label>Choose Difficulty:</label>
-      <div class="diff-buttons">
-        <button class="diff-btn active" data-diff="easy">😊 Easy</button>
-        <button class="diff-btn" data-diff="medium">😤 Medium</button>
-        <button class="diff-btn" data-diff="hard">😈 Hard</button>
+    <div class="start-inner">
+
+      <!-- Daruma hero -->
+      <div class="start-daruma">
+        <svg class="daruma-svg daruma-bounce" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="100" cy="215" rx="60" ry="10" fill="rgba(0,0,0,0.35)"/>
+          <ellipse cx="100" cy="132" rx="80" ry="88" fill="#c0392b"/>
+          <ellipse cx="72"  cy="88"  rx="22" ry="28" fill="rgba(255,255,255,0.1)"/>
+          <ellipse cx="100" cy="68"  rx="44" ry="15" fill="#f39c12"/>
+          <path d="M58 68 Q100 58 142 68" fill="#e67e22"/>
+          <ellipse cx="100" cy="102" rx="56" ry="53" fill="#fef5e4"/>
+          <ellipse cx="78"  cy="97"  rx="15" ry="17" fill="white"/>
+          <ellipse cx="122" cy="97"  rx="15" ry="17" fill="white"/>
+          <path d="M58 79 Q78 67 97 77"    stroke="#2c3e50" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+          <path d="M103 77 Q122 67 142 79" stroke="#2c3e50" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+          <circle cx="78"  cy="99" r="8" fill="#1a1a2e"/>
+          <circle cx="122" cy="99" r="8" fill="#1a1a2e"/>
+          <circle cx="75"  cy="96" r="2.5" fill="white"/>
+          <circle cx="119" cy="96" r="2.5" fill="white"/>
+          <ellipse cx="100" cy="113" rx="5" ry="4" fill="#d4a48a"/>
+          <path d="M72 120 Q86 126 100 120"  stroke="#666" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M100 120 Q114 126 128 120" stroke="#666" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M76 128 Q100 144 124 128"  stroke="#777" stroke-width="2"   fill="none" stroke-linecap="round"/>
+          <ellipse cx="60"  cy="110" rx="11" ry="8" fill="#e74c3c" opacity="0.35"/>
+          <ellipse cx="140" cy="110" rx="11" ry="8" fill="#e74c3c" opacity="0.35"/>
+          <path d="M28 185 Q100 206 172 185 Q156 216 100 216 Q44 216 28 185Z" fill="#f39c12"/>
+          <text x="100" y="207" text-anchor="middle" font-size="13" fill="#7d1a00" font-weight="bold" font-family="serif">達磨</text>
+        </svg>
       </div>
+
+      <h1 class="game-title">Red Light,<br>Green Light!</h1>
+      <p class="subtitle">Freeze when you see 🔴 Red!<br>Move when you see 🟢 Green!</p>
+
+      <!-- Player name -->
+      <div class="name-row">
+        <input id="player-name" type="text" maxlength="16" placeholder="Enter your name 🎮" autocomplete="off"/>
+      </div>
+
+      <!-- Language -->
+      <div class="option-group">
+        <label class="option-label">🌍 Language</label>
+        <div class="lang-buttons">
+          <button class="lang-btn active" data-lang="en">🇺🇸 English</button>
+          <button class="lang-btn" data-lang="ja">🇯🇵 日本語</button>
+          <button class="lang-btn" data-lang="hi">🇮🇳 हिंदी</button>
+          <button class="lang-btn" data-lang="ta">🌺 தமிழ்</button>
+        </div>
+      </div>
+
+      <!-- Difficulty -->
+      <div class="option-group">
+        <label class="option-label">⚡ Difficulty</label>
+        <div class="diff-buttons">
+          <button class="diff-btn active" data-diff="easy">😊 Easy</button>
+          <button class="diff-btn" data-diff="medium">😤 Medium</button>
+          <button class="diff-btn" data-diff="hard">😈 Hard</button>
+        </div>
+      </div>
+
+      <div class="start-actions">
+        <button id="btn-start" class="btn-main pulse">▶ Play!</button>
+        <button id="btn-leaderboard" class="btn-secondary">🏆 Leaderboard</button>
+      </div>
+
+      <div class="camera-notice">📷 Camera required — allow access when prompted</div>
     </div>
-    <button id="btn-start" class="btn-main pulse">▶ Play Now!</button>
   </div>
 
   <!-- ===== GAME SCREEN ===== -->
@@ -34,42 +87,82 @@
         <span class="hud-label">Lives</span>
         <div id="lives-display"></div>
       </div>
+
+      <div id="timer-ring-wrap">
+        <svg id="timer-ring" viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="6"/>
+          <circle id="timer-progress" cx="32" cy="32" r="27" fill="none"
+                  stroke="#ffd600" stroke-width="6"
+                  stroke-dasharray="169.6" stroke-dashoffset="0"
+                  stroke-linecap="round"
+                  transform="rotate(-90 32 32)"/>
+        </svg>
+        <div id="timer-number">--</div>
+      </div>
+
       <div id="hud-score">
         <span class="hud-label">Score</span>
         <span id="score-value">0</span>
       </div>
       <div id="hud-round">
         <span class="hud-label">Round</span>
-        <span id="round-value">1</span>
+        <span id="round-value">1/5</span>
       </div>
     </div>
 
-    <!-- Main Game Area -->
+    <!-- Main game layout: sidebar + camera -->
     <div id="game-area">
 
-      <!-- Traffic Light -->
-      <div id="traffic-light">
-        <div class="light-housing">
-          <div class="light" id="light-red"></div>
-          <div class="light" id="light-green"></div>
+      <!-- Left sidebar: Traffic light + Daruma -->
+      <div id="game-sidebar">
+        <div id="traffic-light">
+          <div class="light-housing">
+            <div class="light" id="light-red"></div>
+            <div class="light" id="light-green"></div>
+          </div>
+          <div class="light-post"></div>
         </div>
-        <div class="light-post"></div>
+
+        <div id="daruma-wrap">
+          <!-- Daruma SVG game version -->
+          <svg id="daruma-game" class="daruma-svg" viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="100" cy="215" rx="60" ry="10" fill="rgba(0,0,0,0.35)"/>
+            <ellipse cx="100" cy="132" rx="80" ry="88" fill="#c0392b"/>
+            <ellipse cx="72"  cy="88"  rx="22" ry="28" fill="rgba(255,255,255,0.1)"/>
+            <ellipse cx="100" cy="68"  rx="44" ry="15" fill="#f39c12"/>
+            <path d="M58 68 Q100 58 142 68" fill="#e67e22"/>
+            <ellipse cx="100" cy="102" rx="56" ry="53" fill="#fef5e4"/>
+            <ellipse cx="78"  cy="97"  rx="15" ry="17" fill="white"/>
+            <ellipse cx="122" cy="97"  rx="15" ry="17" fill="white"/>
+            <!-- Eyebrows (animated via CSS class) -->
+            <path class="brow-l" d="M58 79 Q78 67 97 77"    stroke="#2c3e50" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+            <path class="brow-r" d="M103 77 Q122 67 142 79" stroke="#2c3e50" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+            <circle cx="78"  cy="99" r="8" fill="#1a1a2e"/>
+            <circle cx="122" cy="99" r="8" fill="#1a1a2e"/>
+            <circle cx="75"  cy="96" r="2.5" fill="white"/>
+            <circle cx="119" cy="96" r="2.5" fill="white"/>
+            <ellipse cx="100" cy="113" rx="5" ry="4" fill="#d4a48a"/>
+            <path d="M72 120 Q86 126 100 120"  stroke="#666" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M100 120 Q114 126 128 120" stroke="#666" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <path d="M76 128 Q100 144 124 128"  stroke="#777" stroke-width="2"   fill="none" stroke-linecap="round"/>
+            <ellipse cx="60"  cy="110" rx="11" ry="8" fill="#e74c3c" opacity="0.35"/>
+            <ellipse cx="140" cy="110" rx="11" ry="8" fill="#e74c3c" opacity="0.35"/>
+            <path d="M28 185 Q100 206 172 185 Q156 216 100 216 Q44 216 28 185Z" fill="#f39c12"/>
+            <text x="100" y="207" text-anchor="middle" font-size="13" fill="#7d1a00" font-weight="bold" font-family="serif">達磨</text>
+          </svg>
+          <div id="doll-speech"></div>
+        </div>
       </div>
 
-      <!-- Doll Character -->
-      <div id="doll-container">
-        <div id="doll" class="doll-front">🪆</div>
-        <div id="doll-speech"></div>
-      </div>
-
-      <!-- Camera + Canvas -->
+      <!-- Camera (main / bigger) -->
       <div id="camera-container">
         <video id="webcam" autoplay playsinline muted></video>
         <canvas id="pose-canvas"></canvas>
-        <div id="movement-indicator"></div>
         <div id="camera-overlay">
           <div id="scan-line"></div>
         </div>
+        <div id="movement-indicator"></div>
+        <div id="camera-badge">👁️ AI Watching</div>
       </div>
 
     </div>
@@ -79,14 +172,14 @@
       <span id="status-text">Get Ready...</span>
     </div>
 
-    <!-- Countdown -->
+    <!-- Countdown Overlay -->
     <div id="countdown-overlay" class="hidden">
       <div id="countdown-number"></div>
     </div>
 
     <!-- Caught Flash -->
     <div id="caught-overlay" class="hidden">
-      <div class="caught-text">❌ YOU MOVED!</div>
+      <div class="caught-text" id="caught-text">❌ YOU MOVED!</div>
     </div>
 
   </div>
@@ -95,18 +188,46 @@
   <div id="screen-win" class="screen">
     <div class="result-emoji">🎉</div>
     <h2 class="result-title">You Win!</h2>
-    <p class="result-msg">Amazing job! You survived all rounds!</p>
+    <p class="result-msg" id="win-msg">Amazing job! You survived all rounds!</p>
     <div class="final-score">Score: <span id="win-score">0</span></div>
-    <button id="btn-play-again-win" class="btn-main pulse">▶ Play Again</button>
+    <div class="result-actions">
+      <button id="btn-play-again-win" class="btn-main pulse">▶ Play Again</button>
+      <button id="btn-lb-win" class="btn-secondary">🏆 Leaderboard</button>
+    </div>
   </div>
 
   <!-- ===== LOSE SCREEN ===== -->
   <div id="screen-lose" class="screen">
     <div class="result-emoji shake-emoji">😱</div>
     <h2 class="result-title">Game Over!</h2>
-    <p class="result-msg">You got caught moving on Red Light!</p>
+    <p class="result-msg" id="lose-msg">You got caught moving on Red Light!</p>
     <div class="final-score">Score: <span id="lose-score">0</span></div>
-    <button id="btn-play-again-lose" class="btn-main pulse">▶ Try Again</button>
+    <div class="result-actions">
+      <button id="btn-play-again-lose" class="btn-main pulse">▶ Try Again</button>
+      <button id="btn-lb-lose" class="btn-secondary">🏆 Leaderboard</button>
+    </div>
+  </div>
+
+  <!-- ===== LEADERBOARD MODAL ===== -->
+  <div id="leaderboard-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>🏆 Leaderboard</h2>
+        <button id="btn-lb-close" class="modal-close">✕</button>
+      </div>
+      <div id="lb-table-wrap">
+        <table id="lb-table">
+          <thead>
+            <tr><th>#</th><th>Player</th><th>Score</th><th>Diff</th><th>Date</th></tr>
+          </thead>
+          <tbody id="lb-tbody"></tbody>
+        </table>
+        <p id="lb-empty" class="lb-empty hidden">No scores yet — play a game! 🎮</p>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-lb-reset" class="btn-danger">🗑️ Reset All Scores</button>
+      </div>
+    </div>
   </div>
 
   <!-- Confetti canvas -->

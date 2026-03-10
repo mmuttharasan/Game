@@ -1,11 +1,10 @@
 /**
  * ui.js
- * All DOM manipulation, animations, and visual feedback.
+ * DOM manipulation, Daruma animations, timer ring, leaderboard, confetti.
  */
 
 const UI = (() => {
 
-  // ── Element cache ─────────────────────────────────────────────────────────────
   const $ = id => document.getElementById(id);
 
   const screens = {
@@ -16,25 +15,34 @@ const UI = (() => {
   };
 
   const el = {
-    lightRed:           $('light-red'),
-    lightGreen:         $('light-green'),
-    doll:               $('doll'),
-    dollSpeech:         $('doll-speech'),
-    statusBanner:       $('status-banner'),
-    statusText:         $('status-text'),
-    livesDisplay:       $('lives-display'),
-    scoreValue:         $('score-value'),
-    roundValue:         $('round-value'),
-    countdownOverlay:   $('countdown-overlay'),
-    countdownNumber:    $('countdown-number'),
-    caughtOverlay:      $('caught-overlay'),
-    cameraOverlay:      $('camera-overlay'),
-    scanLine:           $('scan-line'),
-    movementIndicator:  $('movement-indicator'),
-    winScore:           $('win-score'),
-    loseScore:          $('lose-score'),
-    confettiCanvas:     $('confetti-canvas'),
+    lightRed:          $('light-red'),
+    lightGreen:        $('light-green'),
+    daruma:            $('daruma-game'),
+    dollSpeech:        $('doll-speech'),
+    statusBanner:      $('status-banner'),
+    statusText:        $('status-text'),
+    livesDisplay:      $('lives-display'),
+    scoreValue:        $('score-value'),
+    roundValue:        $('round-value'),
+    timerProgress:     $('timer-progress'),
+    timerNumber:       $('timer-number'),
+    countdownOverlay:  $('countdown-overlay'),
+    countdownNumber:   $('countdown-number'),
+    caughtOverlay:     $('caught-overlay'),
+    caughtText:        $('caught-text'),
+    cameraOverlay:     $('camera-overlay'),
+    scanLine:          $('scan-line'),
+    movementIndicator: $('movement-indicator'),
+    winScore:          $('win-score'),
+    loseScore:         $('lose-score'),
+    confettiCanvas:    $('confetti-canvas'),
+    lbModal:           $('leaderboard-modal'),
+    lbTbody:           $('lb-tbody'),
+    lbEmpty:           $('lb-empty'),
   };
+
+  // Timer ring circumference for r=27: 2π×27 ≈ 169.6
+  const CIRCUMFERENCE = 169.6;
 
   // ── Screens ───────────────────────────────────────────────────────────────────
   function showScreen(name) {
@@ -50,75 +58,79 @@ const UI = (() => {
     if (color === 'green') el.lightGreen.classList.add('on');
   }
 
-  // ── Doll ──────────────────────────────────────────────────────────────────────
+  // ── Daruma character ──────────────────────────────────────────────────────────
   let speechTimeout = null;
 
-  function setDollFacing(facing) {
-    el.doll.className = facing === 'turned' ? 'doll-turned' : 'doll-front';
-  }
-
-  function setDollAngry() {
-    el.doll.className = 'doll-angry';
-    setTimeout(() => { el.doll.className = 'doll-turned'; }, 1200);
+  function setDarumaState(state) {
+    // state: 'idle' | 'green' | 'red' | 'angry'
+    if (!el.daruma) return;
+    el.daruma.className = 'daruma-svg daruma-' + state;
   }
 
   function setDollSpeech(text) {
     clearTimeout(speechTimeout);
     if (!text) {
       el.dollSpeech.classList.remove('visible');
+      el.dollSpeech.textContent = '';
       return;
     }
     el.dollSpeech.textContent = text;
     el.dollSpeech.classList.add('visible');
-    speechTimeout = setTimeout(() => {
-      el.dollSpeech.classList.remove('visible');
-    }, 2500);
+    speechTimeout = setTimeout(() => el.dollSpeech.classList.remove('visible'), 2800);
   }
 
   // ── Status Banner ─────────────────────────────────────────────────────────────
   function setStatus(text, state) {
     el.statusText.textContent = text;
-    el.statusBanner.className = '';
-    if (state === 'green')   el.statusBanner.classList.add('state-green');
-    else if (state === 'red') el.statusBanner.classList.add('state-red');
-    else                      el.statusBanner.classList.add('state-neutral');
+    el.statusBanner.className = 'state-' + (state || 'neutral');
   }
 
   // ── HUD ───────────────────────────────────────────────────────────────────────
   function updateLives(current, max) {
     el.livesDisplay.innerHTML = '';
     for (let i = 0; i < max; i++) {
-      const heart = document.createElement('span');
-      heart.className = 'life-heart' + (i >= current ? ' lost' : '');
-      heart.textContent = '❤️';
-      el.livesDisplay.appendChild(heart);
+      const h = document.createElement('span');
+      h.className = 'life-heart' + (i >= current ? ' lost' : '');
+      h.textContent = '❤️';
+      el.livesDisplay.appendChild(h);
     }
   }
 
   function updateScore(value) {
     el.scoreValue.textContent = value;
-    // Pop animation
-    el.scoreValue.style.transform = 'scale(1.4)';
+    el.scoreValue.style.transform = 'scale(1.45)';
     el.scoreValue.style.color = '#fff';
-    setTimeout(() => {
-      el.scoreValue.style.transform = '';
-      el.scoreValue.style.color = '';
-    }, 300);
+    setTimeout(() => { el.scoreValue.style.transform = ''; el.scoreValue.style.color = ''; }, 280);
   }
 
   function updateRound(current, max) {
     el.roundValue.textContent = `${current}/${max}`;
   }
 
+  // ── Timer Ring ────────────────────────────────────────────────────────────────
+  function updateTimer(secondsLeft, totalSeconds, phase) {
+    const progress = totalSeconds > 0 ? secondsLeft / totalSeconds : 0;
+    const offset   = CIRCUMFERENCE * (1 - progress);
+    el.timerProgress.style.strokeDashoffset = offset;
+    el.timerNumber.textContent = secondsLeft > 0 ? Math.ceil(secondsLeft) : '--';
+
+    // Color: green phase → green ring, red phase → red ring
+    el.timerProgress.style.stroke = phase === 'green' ? '#00e676' : '#ff2d2d';
+  }
+
+  function resetTimer() {
+    el.timerProgress.style.strokeDashoffset = 0;
+    el.timerNumber.textContent = '--';
+    el.timerProgress.style.stroke = '#ffd600';
+  }
+
   // ── Camera Overlay ────────────────────────────────────────────────────────────
   function setCameraOverlay(cls) {
-    el.cameraOverlay.className = '';
-    if (cls) el.cameraOverlay.classList.add(cls);
+    el.cameraOverlay.className = cls || '';
   }
 
   function setScanLine(active) {
-    if (active) el.scanLine.classList.add('active');
-    else        el.scanLine.classList.remove('active');
+    el.scanLine.classList.toggle('active', active);
   }
 
   function setMovementIndicator(text, isSafe) {
@@ -133,14 +145,14 @@ const UI = (() => {
   }
 
   // ── Countdown ─────────────────────────────────────────────────────────────────
-  function showCountdown(number) {
+  function showCountdown(text, color) {
     el.countdownOverlay.classList.remove('hidden');
-    const colors = ['#ff2d2d', '#ffd600', '#00e676'];
-    el.countdownNumber.textContent = number;
-    el.countdownNumber.style.color = colors[(number - 1) % colors.length];
-    // Re-trigger animation
+    el.countdownNumber.textContent = text;
+    const colors = { 3: '#ff2d2d', 2: '#ffd600', 1: '#00e676', go: '#00e676' };
+    el.countdownNumber.style.color = color || colors[text] || '#fff';
+    // Re-trigger CSS animation
     el.countdownNumber.style.animation = 'none';
-    el.countdownNumber.offsetHeight; // reflow
+    void el.countdownNumber.offsetHeight;
     el.countdownNumber.style.animation = '';
   }
 
@@ -149,11 +161,9 @@ const UI = (() => {
   }
 
   // ── Caught Overlay ────────────────────────────────────────────────────────────
-  let caughtTimer = null;
-
-  function showCaughtOverlay() {
+  function showCaughtOverlay(message) {
+    if (message) el.caughtText.textContent = message;
     el.caughtOverlay.classList.remove('hidden');
-    clearTimeout(caughtTimer);
   }
 
   function hideCaughtOverlay() {
@@ -172,9 +182,75 @@ const UI = (() => {
     showScreen('lose');
   }
 
+  // ── Leaderboard ───────────────────────────────────────────────────────────────
+  const LB_KEY = 'rlgl_leaderboard';
+  const LB_MAX = 20;
+
+  function saveScore(name, score, difficulty) {
+    const entries = getScores();
+    entries.push({
+      name: name || 'Player',
+      score,
+      difficulty,
+      date: new Date().toLocaleDateString(),
+    });
+    entries.sort((a, b) => b.score - a.score);
+    if (entries.length > LB_MAX) entries.length = LB_MAX;
+    localStorage.setItem(LB_KEY, JSON.stringify(entries));
+  }
+
+  function getScores() {
+    try { return JSON.parse(localStorage.getItem(LB_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function resetScores() {
+    localStorage.removeItem(LB_KEY);
+    renderLeaderboard();
+  }
+
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  const DIFF_LABELS = { easy: '😊', medium: '😤', hard: '😈' };
+
+  function renderLeaderboard() {
+    const entries = getScores();
+    el.lbTbody.innerHTML = '';
+
+    if (entries.length === 0) {
+      el.lbEmpty.classList.remove('hidden');
+      return;
+    }
+    el.lbEmpty.classList.add('hidden');
+
+    entries.forEach((e, i) => {
+      const tr = document.createElement('tr');
+      const medal = MEDALS[i] || `${i + 1}`;
+      tr.innerHTML = `
+        <td>${medal}</td>
+        <td>${escHtml(e.name)}</td>
+        <td>${e.score}</td>
+        <td>${DIFF_LABELS[e.difficulty] || e.difficulty}</td>
+        <td>${e.date}</td>
+      `;
+      el.lbTbody.appendChild(tr);
+    });
+  }
+
+  function showLeaderboard() {
+    renderLeaderboard();
+    el.lbModal.classList.remove('hidden');
+  }
+
+  function hideLeaderboard() {
+    el.lbModal.classList.add('hidden');
+  }
+
+  function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
   // ── Confetti ──────────────────────────────────────────────────────────────────
   let confettiRaf = null;
-  const confettiParticles = [];
 
   function launchConfetti() {
     const canvas = el.confettiCanvas;
@@ -182,36 +258,28 @@ const UI = (() => {
     canvas.width  = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    confettiParticles.length = 0;
-    const colors = ['#ff2d2d','#ffd600','#00e676','#e94560','#00b4d8','#ff9f1c','#ffffff'];
-
-    for (let i = 0; i < 180; i++) {
-      confettiParticles.push({
-        x:     Math.random() * canvas.width,
-        y:     Math.random() * canvas.height - canvas.height,
-        w:     rand(6, 14),
-        h:     rand(4, 10),
-        color: colors[Math.floor(Math.random() * colors.length)],
-        vx:    (Math.random() - 0.5) * 4,
-        vy:    Math.random() * 4 + 2,
-        angle: Math.random() * 360,
-        spin:  (Math.random() - 0.5) * 6,
-        alpha: 1,
-      });
-    }
+    const colors = ['#ff2d2d','#ffd600','#00e676','#e94560','#00b4d8','#ff9f1c','#ffffff','#a855f7'];
+    const particles = Array.from({ length: 200 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: rand(5, 13), h: rand(4, 9),
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vx: (Math.random() - 0.5) * 4,
+      vy: Math.random() * 4 + 2,
+      angle: Math.random() * 360,
+      spin: (Math.random() - 0.5) * 6,
+      alpha: 1,
+    }));
 
     function rand(a, b) { return Math.floor(Math.random() * (b - a + 1)) + a; }
 
     let frame = 0;
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      confettiParticles.forEach(p => {
-        p.x     += p.vx;
-        p.y     += p.vy;
+      particles.forEach(p => {
+        p.x += p.vx; p.y += p.vy; p.vy += 0.09;
         p.angle += p.spin;
-        p.vy    += 0.08; // gravity
-        if (frame > 120) p.alpha -= 0.008;
-        p.alpha = Math.max(p.alpha, 0);
+        if (frame > 100) p.alpha = Math.max(0, p.alpha - 0.01);
 
         ctx.save();
         ctx.translate(p.x, p.y);
@@ -221,13 +289,9 @@ const UI = (() => {
         ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
         ctx.restore();
       });
-
       frame++;
-      if (frame < 240) {
-        confettiRaf = requestAnimationFrame(draw);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
+      if (frame < 260) confettiRaf = requestAnimationFrame(draw);
+      else ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
 
     if (confettiRaf) cancelAnimationFrame(confettiRaf);
@@ -237,13 +301,14 @@ const UI = (() => {
   return {
     showScreen,
     setLight,
-    setDollFacing,
-    setDollAngry,
+    setDarumaState,
     setDollSpeech,
     setStatus,
     updateLives,
     updateScore,
     updateRound,
+    updateTimer,
+    resetTimer,
     setCameraOverlay,
     setScanLine,
     setMovementIndicator,
@@ -253,6 +318,9 @@ const UI = (() => {
     hideCaughtOverlay,
     showWinScreen,
     showLoseScreen,
+    saveScore,
+    showLeaderboard,
+    hideLeaderboard,
     launchConfetti,
   };
 
